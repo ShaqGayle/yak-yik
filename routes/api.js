@@ -6,11 +6,17 @@ var controllers = require('../controllers');
 router.get('/:resource', function(req, res, next) {
 
 	var resource = req.params.resource;
-	var contr
+	var controller = controllers[resource];
 
-	if(resource = 'zone'){
-		ZoneController.find(req.query, function(err, results){
-			if (err) {
+	if(controller == null) {
+		res.json({
+			confirmation: 'fail',
+			message: 'Invalid resource request: ' +resource
+		});
+	}
+
+	controller.find(req.query, function(err, item) {
+		if (err) {
 				res.json({
 					confirmation: 'fail',
 					message: err
@@ -21,20 +27,25 @@ router.get('/:resource', function(req, res, next) {
 
 			res.json({
 				confirmation: 'success',
-				results: results
+				results: item
 			});
-		});
-	}
-
+	});
 });
 
 router.get('/:resource/:id', function(req, res, next) {
 
 	var resource = req.params.resource;
 	var id = req.params.id;
+	var controller = controllers[resource];
 
-	if(resource =='zone'){
-		ZoneController.findById(id, function(err, result){
+	if(controller == null) {
+		res.json({
+			confirmation: 'fail',
+			message: 'Invalid resource request: ' +resource
+		});
+	}
+
+	controller.findById(id, function(err, item){
 			if(err) {
 				res.json({
 					confirmation: 'Item does not exist',
@@ -46,18 +57,24 @@ router.get('/:resource/:id', function(req, res, next) {
 
 			res.json({
 				confirmation: 'success',
-				result: result
+				result: item
 			});
 		})
-	}
 });
 
 router.post('/:resource', function(req, res, next) {
 
 	var resource = req.params.resource;
+	var controller = controllers[resource];
 
-	if(resource == 'zone'){
-		ZoneController.create(req.body, function(err, zone) {
+	if(controller == null) {
+		res.json({
+			confirmation: 'fail',
+			message: 'Invalid resource request: ' +resource
+		});
+	}
+
+	controller.create(req.body, function(err, item) {
 			if(err) {
 				res.json({
 					confirmation: 'fail',
@@ -69,11 +86,68 @@ router.post('/:resource', function(req, res, next) {
 
 			res.json({
 				confirmation: 'success',
-				zone: zone
+				result: item
 			});
 
 		});
+});
+
+router.put('/:resource/:id', function(req, res, next) {
+	var resource = req.params.resource;
+	var id = req.params.id;
+	var controller = controllers[resource];
+
+	if(controller == null) {
+		res.json({
+			confirmation: 'fail',
+			message: 'Invalid resource request: ' +resource
+		});
 	}
+
+	controller.findByIdAndUpdate(id, req.body, function(err, item) {
+		if(err) {
+				res.json({
+					confirmation: 'fail',
+					message: err
+				});
+
+				return;
+			}
+
+			res.json({
+				confirmation: 'success',
+				result: item
+			});
+	});
+});
+
+router.delete('/:resource/:id', function(req, res, next) {
+	var resource = req.params.resource;
+	var id = req.params.id;
+	var controller = controllers[resource];
+
+	if(controller == null) {
+		res.json({
+			confirmation: 'fail',
+			message: 'Invalid resource request: ' +resource
+		});
+	}
+
+	controller.findByIdAndRemove(id, function(err, item) {
+		if(err) {
+				res.json({
+					confirmation: 'fail',
+					message: err
+				});
+
+				return;
+			}
+
+			res.json({
+				confirmation: 'success',
+				result: item
+			});
+	});
 });
 
 module.exports = router;
