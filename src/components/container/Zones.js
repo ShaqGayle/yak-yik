@@ -1,62 +1,70 @@
 import React, { Component } from 'react';
-import Zone from '../presentational/Zone';
-import superagent from 'superagent';
+import { Zone, CreateZone } from '../presentational';
+import { APIManager } from '../../utils';
 
 class Zones extends Component {
 		constructor(){
 		super();
 		this.state = {
-			zone: {
-				name: '',
-				zipCode: '',
-				numComments: ''
-			},
 			list: []
 		}
 	}
 
-	submitZone() {
-		console.log('submitted: ' + JSON.stringify(this.state.zone));
-		let updatedList = Object.assign([], this.state.list);
-		updatedList.push(this.state.zone);
+	componentDidMount() {
+		console.log('Component mounted');
 
+		APIManager.get('api/zone', null, (err, res) => {
+			if(err){
+				alert('ERROR: ' +err.message);
+				return;
+			}
+
+			this.setState({
+				selected: 0,
+				list: res.result
+			})
+		});
+	}
+
+	submitZone(zone) {
+		let updatedZone = Object.assign({}, zone);
+		updatedZone['zipCodes'] = updatedZone.zipCode.split(',');
+
+		APIManager.post('/api/zone', updatedZone, (err, res) => {
+			if(err) {
+				alert('ERROR: ' + err.message);
+				return;
+			}
+
+			console.log("Zone Submitted: " + JSON.stringify(res));
+			let updatedList = Object.assign([], this.state.list);
+			updatedList.push(res.result);
+
+			this.setState({
+				list: updatedList
+			});
+		});
+
+		// let updatedList = Object.assign([], this.state.list);
+		// updatedList.push(this.state.zone);
+
+		// this.setState({
+		// 	list: updatedList
+		// })
+	}
+
+	selectZone(index) {
+		let updatedTitle = index;
 		this.setState({
-			list: updatedList
-		})
+			selected: updatedTitle
+		});
 	}
-
-	updateName(event) {
-		let updatedName = Object.assign({}, this.state.zone);
-		updatedName['name'] = event.target.value;
-
-		this.setState ({
-			zone: updatedName
-		})
-	}
-
-	updateZip(event) {
-		let updatedZip = Object.assign({}, this.state.zone);
-		updatedZip['zipCode'] = event.target.value;
-
-		this.setState ({
-			zone: updatedZip
-		})
-	}
-
-	updateComments(event) {
-		let updatedComments = Object.assign({}, this.state.zone);
-		updatedComments['numComments'] = event.target.value;
-
-		this.setState ({
-			zone: updatedComments
-		})
-	}
-
 
 	render(){
 		const listItems = this.state.list.map((zone, i) => {
+			let selected = (i == this.state.selected);
 				return(
-					<li key={i}><Zone zone={zone}/></li>
+					<li key={i}><Zone index = {i} select={this.selectZone.bind(this)} isSelected={selected} zone={zone}/></li>
 				)
 			});
 
@@ -65,10 +73,7 @@ class Zones extends Component {
 				<ol style={{listStyleType: 'none'}}>
 					{listItems}
 				</ol>
-				<input onChange={this.updateName.bind(this)} className="form-control" type="text" placeholder="Zone" />
-				<input onChange={this.updateZip.bind(this)} className="form-control" type="text" placeholder="zip" />
-				<input onChange={this.updateComments.bind(this)} className="form-control" type="text" placeholder="numComments" />
-				<button onClick={this.submitZone.bind(this)} className="btn btn-danger">Submit Zone</button>
+				<CreateZone onCreate = {this.submitZone.bind(this)} />
 			</div>
 		)
 	}

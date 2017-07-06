@@ -24,6 +24,7 @@ export default {
 			marginBottom: 0
 		},
 		anchor: {
+			color: '#ff0000',
 			textDecoration: 'none'
 		}	
 	}
